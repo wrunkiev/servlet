@@ -1,30 +1,21 @@
 package servlet;
 
-import DAO.ItemDAO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import controller.ItemController;
 import model.Item;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.Array;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-
 
 @WebServlet(urlPatterns = "/test")
 public class MyServlet extends HttpServlet {
     private ItemController itemController = new ItemController();
+    private BufferedReader bufferedReader;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -33,37 +24,32 @@ public class MyServlet extends HttpServlet {
             long id = Long.parseLong(idString);
             resp.getWriter().println(itemController.findById(id).toString());
         }catch (Exception e){
-            resp.getWriter().println();
+            resp.getWriter().println("404 Error. Data is not found.");
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try{
-            String str = bodyContent(req.getReader());
+            bufferedReader = req.getReader();
+            String str = bodyContent(bufferedReader);
             Item item = getItem(str);
+            if(item == null){
+                throw new Exception();
+            }
             item.setId(null);
             itemController.save(item);
         }catch (Exception e){
-            resp.getWriter().println();
+            resp.getWriter().println("500 Internal Server Error. Data is not saved.");
+        }finally {
+            bufferedReader.close();
         }
     }
 
-    private Item getItem(String response) throws JSONException {
+    private Item getItem(String response) {
         try{
-            JSONObject itemJson = new JSONObject(response);
-            Long id = itemJson.getLong("id");
-            String name = itemJson.getString("name");
-            Date dateCreated = new SimpleDateFormat("dd/MM/yyyy").parse(itemJson.getString("dateCreated"));
-            Date lastUpdatedDate = new SimpleDateFormat("dd/MM/yyyy").parse(itemJson.getString("lastUpdatedDate"));
-            String description = itemJson.getString("description");
-
-            Item item = new Item();
-            item.setId(id);
-            item.setName(name);
-            item.setDateCreated(dateCreated);
-            item.setLastUpdatedDate(lastUpdatedDate);
-            item.setDescription(description);
+            ObjectMapper mapper = new ObjectMapper();
+            Item item = mapper.readValue(response, Item.class);
             return item;
         }catch (Exception e){
             return null;
@@ -71,7 +57,7 @@ public class MyServlet extends HttpServlet {
     }
 
     private String bodyContent(BufferedReader reader) throws IOException {
-        String input = null;
+        String input;
         StringBuilder requestBody = new StringBuilder();
         while((input = reader.readLine()) != null) {
             requestBody.append(input);
@@ -80,24 +66,36 @@ public class MyServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try{
-            String str = bodyContent(req.getReader());
+            bufferedReader = req.getReader();
+            String str = bodyContent(bufferedReader);
             Item item = getItem(str);
+            if(item == null){
+                throw new Exception();
+            }
             itemController.update(item);
         }catch (Exception e){
-            resp.getWriter().println();
+            resp.getWriter().println("500 Internal Server Error. Data is not updated.");
+        }finally {
+            bufferedReader.close();
         }
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try{
-            String str = bodyContent(req.getReader());
+            bufferedReader = req.getReader();
+            String str = bodyContent(bufferedReader);
             Item item = getItem(str);
+            if(item == null){
+                throw new Exception();
+            }
             itemController.delete(item.getId());
         }catch (Exception e){
-            resp.getWriter().println();
+            resp.getWriter().println("500 Internal Server Error. Data is not deleted.");
+        }finally {
+            bufferedReader.close();
         }
     }
 }
