@@ -3,6 +3,8 @@ package servlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import controller.ItemController;
 import model.Item;
+
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -22,9 +24,16 @@ public class MyServlet extends HttpServlet {
         try{
             String idString = req.getParameter("id");
             long id = Long.parseLong(idString);
-            resp.getWriter().println(itemController.findById(id).toString());
+            Item item = itemController.findById(id);
+            if(item == null){
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.getWriter().println(resp.getStatus());
+            }else {
+                resp.getWriter().println(itemController.findById(id).toString());
+            }
         }catch (Exception e){
-            resp.getWriter().println("404 Error. Data is not found.");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().println(resp.getStatus());
         }
     }
 
@@ -40,7 +49,8 @@ public class MyServlet extends HttpServlet {
             item.setId(null);
             itemController.save(item);
         }catch (Exception e){
-            resp.getWriter().println("500 Internal Server Error. Data is not saved.");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().println(resp.getStatus());
         }finally {
             bufferedReader.close();
         }
@@ -76,7 +86,8 @@ public class MyServlet extends HttpServlet {
             }
             itemController.update(item);
         }catch (Exception e){
-            resp.getWriter().println("500 Internal Server Error. Data is not updated.");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().println(resp.getStatus());
         }finally {
             bufferedReader.close();
         }
@@ -93,7 +104,8 @@ public class MyServlet extends HttpServlet {
             }
             itemController.delete(item.getId());
         }catch (Exception e){
-            resp.getWriter().println("500 Internal Server Error. Data is not deleted.");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().println(resp.getStatus());
         }finally {
             bufferedReader.close();
         }

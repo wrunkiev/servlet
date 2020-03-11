@@ -8,6 +8,8 @@ import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.query.NativeQuery;
 import javax.persistence.NoResultException;
+import javax.persistence.Query;
+
 import static util.HibernateSessionFactory.createSessionFactory;
 
 public class ItemDAO {
@@ -23,6 +25,7 @@ public class ItemDAO {
             session.save(item);
 
             tr.commit();
+
             return item;
         } catch (HibernateException e) {
             System.err.println("Exception in method ItemDAO.save. Save item with ID: " + item.getId() + " is failed");
@@ -112,35 +115,29 @@ public class ItemDAO {
 
     private static void existItem(Item item) throws Exception{
         if(getItemFromDB(item) != null){
-            throw new Exception("Exception in method ItemDAO.existItem. Item with ID: " +
-                    getItemFromDB(item).getId() + " is exist in DB already");
+            throw new Exception("Exception in method ItemDAO.existItem. Item: " +
+                    getItemFromDB(item) + " is exist in DB already");
         }
     }
 
-    private static Item getItemFromDB(Item item){
+    private static Object getItemFromDB(Item item){
         Transaction tr = null;
-        Item it;
         try (Session session = createSessionFactory().openSession()) {
             tr = session.getTransaction();
             tr.begin();
 
             String sql = "SELECT * FROM ITEMS WHERE ITEM_NAME = ?";
-            NativeQuery query = session.createNativeQuery(sql, Item.class);
-            query.setParameter(1, item.getName());
-
-            it = (Item) query.getSingleResult();
+            Object ob = session.createNativeQuery(sql).setParameter(1, item.getName()).getSingleResult();
 
             tr.commit();
-            return it;
-        } catch (NoResultException ex) {
-            System.err.println(ex.getMessage());
-            if (tr != null) {
-                tr.rollback();
-            }
-            return null;
-        } catch (HibernateException e) {
+            return ob;
+        } catch (NoResultException e){
             System.err.println(e.getMessage());
-            if (tr != null) {
+            return null;
+        }
+        catch (Exception e) {
+            System.err.println(e.getMessage());
+            if(tr != null) {
                 tr.rollback();
             }
             return null;
