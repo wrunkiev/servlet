@@ -133,7 +133,7 @@ public class ItemDAO {
             return ob;
         } catch (NoResultException e){
             System.err.println(e.getMessage());
-            throw e;
+            return null;
         }catch (Exception e) {
             System.err.println(e.getMessage());
             if(tr != null) {
