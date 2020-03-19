@@ -40,12 +40,7 @@ public class MyServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try{
-            bufferedReader = req.getReader();
-            String str = bodyContent(bufferedReader);
-            Item item = getItem(str);
-            if(item == null){
-                throw new Exception();
-            }
+            Item item = requestRead(req);
             item.setId(null);
             itemController.save(item);
         }catch (Exception e){
@@ -78,12 +73,7 @@ public class MyServlet extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try{
-            bufferedReader = req.getReader();
-            String str = bodyContent(bufferedReader);
-            Item item = getItem(str);
-            if(item == null){
-                throw new Exception();
-            }
+            Item item = requestRead(req);
             itemController.update(item);
         }catch (Exception e){
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -96,12 +86,7 @@ public class MyServlet extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try{
-            bufferedReader = req.getReader();
-            String str = bodyContent(bufferedReader);
-            Item item = getItem(str);
-            if(item == null){
-                throw new Exception();
-            }
+            Item item = requestRead(req);
             itemController.delete(item.getId());
         }catch (Exception e){
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -109,5 +94,15 @@ public class MyServlet extends HttpServlet {
         }finally {
             bufferedReader.close();
         }
+    }
+
+    private Item requestRead(HttpServletRequest req)throws Exception{
+        bufferedReader = req.getReader();
+        String str = bodyContent(bufferedReader);
+        Item item = getItem(str);
+        if(item == null){
+            throw new Exception();
+        }
+        return item;
     }
 }
