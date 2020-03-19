@@ -10,6 +10,8 @@ import org.hibernate.query.NativeQuery;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
+import java.util.List;
+
 import static util.HibernateSessionFactory.createSessionFactory;
 
 public class ItemDAO {
@@ -114,26 +116,26 @@ public class ItemDAO {
     }
 
     private static void existItem(Item item) throws Exception{
-        if(getItemFromDB(item) != null){
-            throw new Exception("Exception in method ItemDAO.existItem. Item: " +
-                    getItemFromDB(item) + " is exist in DB already");
+        if(getItemFromDB(item) > 0){
+            throw new Exception("Exception in method ItemDAO.existItem. Item is exist in DB already");
         }
     }
 
-    private static Object getItemFromDB(Item item){
+    @SuppressWarnings("unchecked")
+    private static int getItemFromDB(Item item){
         Transaction tr = null;
         try (Session session = createSessionFactory().openSession()) {
             tr = session.getTransaction();
             tr.begin();
 
             String sql = "SELECT * FROM ITEMS WHERE ITEM_NAME = ?";
-            Object ob = session.createNativeQuery(sql).setParameter(1, item.getName()).getSingleResult();
+            NativeQuery query = session.createNativeQuery(sql, Item.class);
+            query.setParameter(1, item.getName());
+
+            List<Item> list = session.createNativeQuery(sql).setParameter(1, item.getName()).getResultList();
 
             tr.commit();
-            return ob;
-        } catch (NoResultException e){
-            System.err.println(e.getMessage());
-            return null;
+            return list.size();
         }catch (Exception e) {
             System.err.println(e.getMessage());
             if(tr != null) {
