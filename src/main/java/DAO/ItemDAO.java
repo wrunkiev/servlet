@@ -35,7 +35,7 @@ public class ItemDAO {
             if (tr != null) {
                 tr.rollback();
             }
-            return null;
+            throw e;
         }
     }
 
@@ -55,7 +55,7 @@ public class ItemDAO {
             if (tr != null) {
                 tr.rollback();
             }
-            return null;
+            throw e;
         }
     }
 
@@ -81,7 +81,7 @@ public class ItemDAO {
             if (tr != null) {
                 tr.rollback();
             }
-            return null;
+            throw e;
         }
     }
 
@@ -106,6 +106,7 @@ public class ItemDAO {
             if (tr != null) {
                 tr.rollback();
             }
+            throw e;
         }
     }
 

@@ -101,7 +101,7 @@ public class MyServlet extends HttpServlet {
         String str = bodyContent(bufferedReader);
         Item item = getItem(str);
         if(item == null){
-            throw new Exception();
+            throw new Exception("Request is empty");
         }
         return item;
     }
