@@ -3,6 +3,7 @@ package servlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import controller.ItemController;
 import model.Item;
+import org.hibernate.HibernateException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -32,7 +33,7 @@ public class MyServlet extends HttpServlet {
                 resp.getWriter().println(itemController.findById(id).toString());
             }
         }catch (Exception e){
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             resp.getWriter().println(resp.getStatus());
         }
     }
@@ -43,8 +44,14 @@ public class MyServlet extends HttpServlet {
             Item item = requestRead(req);
             item.setId(null);
             itemController.save(item);
-        }catch (Exception e){
+        }catch (IllegalArgumentException e){
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().println(resp.getStatus());
+        }catch (HibernateException e){
+            resp.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+            resp.getWriter().println(resp.getStatus());
+        }catch (Exception e){
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             resp.getWriter().println(resp.getStatus());
         }finally {
             bufferedReader.close();
@@ -75,8 +82,14 @@ public class MyServlet extends HttpServlet {
         try{
             Item item = requestRead(req);
             itemController.update(item);
-        }catch (Exception e){
+        }catch (IllegalArgumentException e){
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().println(resp.getStatus());
+        }catch (HibernateException e){
+            resp.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+            resp.getWriter().println(resp.getStatus());
+        }catch (Exception e){
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             resp.getWriter().println(resp.getStatus());
         }finally {
             bufferedReader.close();
@@ -88,20 +101,26 @@ public class MyServlet extends HttpServlet {
         try{
             Item item = requestRead(req);
             itemController.delete(item.getId());
-        }catch (Exception e){
+        }catch (IllegalArgumentException e){
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().println(resp.getStatus());
+        }catch (HibernateException e){
+            resp.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+            resp.getWriter().println(resp.getStatus());
+        }catch (Exception e){
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             resp.getWriter().println(resp.getStatus());
         }finally {
             bufferedReader.close();
         }
     }
 
-    private Item requestRead(HttpServletRequest req)throws Exception{
+    private Item requestRead(HttpServletRequest req)throws IllegalArgumentException, IOException{
         bufferedReader = req.getReader();
         String str = bodyContent(bufferedReader);
         Item item = getItem(str);
         if(item == null){
-            throw new Exception("Request is empty");
+            throw new IllegalArgumentException("Request is empty");
         }
         return item;
     }
