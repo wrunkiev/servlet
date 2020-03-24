@@ -3,6 +3,8 @@ package service;
 import DAO.ItemDAO;
 import model.Item;
 
+import java.util.NoSuchElementException;
+
 public class ItemService {
     private ItemDAO itemDAO = new ItemDAO();
 
@@ -10,7 +12,10 @@ public class ItemService {
         return itemDAO.save(item);
     }
 
-    public Item findById(long id){
+    public Item findById(long id)throws NoSuchElementException{
+        if(itemDAO.findById(id) == null){
+            throw new NoSuchElementException();
+        }
         return itemDAO.findById(id);
     }
 

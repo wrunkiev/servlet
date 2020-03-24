@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.NoSuchElementException;
 
 @WebServlet(urlPatterns = "/test")
 public class MyServlet extends HttpServlet {
@@ -21,17 +22,19 @@ public class MyServlet extends HttpServlet {
     private BufferedReader bufferedReader;
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try{
             String idString = req.getParameter("id");
             long id = Long.parseLong(idString);
             Item item = itemController.findById(id);
-            if(item == null){
-                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                resp.getWriter().println(resp.getStatus());
-            }else {
-                resp.getWriter().println(itemController.findById(id).toString());
-            }
+            resp.getWriter().println(item.toString());
+        }catch (NoSuchElementException e){
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            resp.getWriter().println(resp.getStatus());
+        }
+        catch (HibernateException e){
+            resp.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+            resp.getWriter().println(resp.getStatus());
         }catch (Exception e){
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             resp.getWriter().println(resp.getStatus());
@@ -39,7 +42,7 @@ public class MyServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try{
             Item item = requestRead(req);
             item.setId(null);
@@ -78,7 +81,7 @@ public class MyServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try{
             Item item = requestRead(req);
             itemController.update(item);
@@ -97,7 +100,7 @@ public class MyServlet extends HttpServlet {
     }
 
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try{
             Item item = requestRead(req);
             itemController.delete(item.getId());
